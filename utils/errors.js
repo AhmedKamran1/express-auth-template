@@ -14,9 +14,16 @@ module.exports.NotFoundError = (message) => {
   };
 };
 
+module.exports.ForbiddenRequestError = (message) => {
+  return {
+    status: ERROR_CODES.FORBIDDEN_REQUEST,
+    message,
+  };
+};
+
 module.exports.InternalServerError = (message) => {
   return {
     status: ERROR_CODES.NOT_FOUND,
-    message
+    message,
   };
 };
