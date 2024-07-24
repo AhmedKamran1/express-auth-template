@@ -7,13 +7,13 @@ const {
   registerRestaurant,
   getUserRestaurants,
   approveRestaurant,
+  uploadCover,
 } = require("../controllers/restaurant");
 
 // middlewares
 const { validateRequest } = require("../middlewares/validate-request");
-const authenticate = require("../middlewares/auth");
-const authorizeManager = require("../middlewares/manager");
-const authorizeAdmin = require("../middlewares/admin");
+const authenticate = require("../middlewares/authenticate");
+const { authorize } = require("../middlewares/authorize");
 
 // validation
 const {
@@ -21,19 +21,37 @@ const {
   restaurantStatusSchema,
 } = require("../utils/validation-schema/restaurant");
 
+// constants
+const ROLES = require("../utils/constants/roles");
+const upload = require("../multer-config/multer-config");
+
 // Routes
-router.get("/all", getAllRestaurants);
+router.get("/all", [authenticate, authorize([ROLES.ADMIN])], getAllRestaurants);
 router.get("/approved", getApprovedRestaurants);
-router.get("/user", [authenticate, authorizeManager], getUserRestaurants);
+router.get(
+  "/user",
+  [authenticate, authorize([ROLES.MANAGER])],
+  getUserRestaurants
+);
 router.patch(
   "/update-status/:restaurantId",
-  [authenticate, authorizeAdmin, validateRequest(restaurantStatusSchema)],
+  [
+    authenticate,
+    authorize([ROLES.ADMIN]),
+    validateRequest(restaurantStatusSchema),
+  ],
   approveRestaurant
 );
 router.post(
   "/register",
-  [authenticate, authorizeManager, validateRequest(restaurantSchema)],
+  [authenticate, authorize([ROLES.MANAGER]), validateRequest(restaurantSchema)],
   registerRestaurant
+);
+
+router.post(
+  "/cover",
+  [authenticate, authorize([ROLES.MANAGER]), upload.single("image")],
+  uploadCover
 );
 
 module.exports = router;

@@ -78,7 +78,6 @@ const HTML_TEMPLATE = (name, email, message) => {
 };
 
 const sendMail = async (name, email, subject, message) => {
-  console.log(process.env.EMAIL_ADDRESS, process.env.GMAIL_APP_PASS);
   const transporter = nodemailer.createTransport({
     service: process.env.EMAIL_SERVICE,
     host: process.env.EMAIL_HOST,

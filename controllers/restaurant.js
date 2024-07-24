@@ -1,9 +1,17 @@
-const {
-  BadRequestError,
-  ForbiddenRequestError,
-  NotFoundError,
-} = require("../utils/errors");
+const { BadRequestError, NotFoundError } = require("../utils/errors");
 const Restaurant = require("../models/restaurant");
+const cloudinary = require("cloudinary").v2;
+
+// Add Restaurant Cover Photo
+const uploadCover = async (req, res) => {
+  console.log(req.file);
+  const result = await cloudinary.uploader.upload(req.file, {
+    folder: "demo",
+  });
+
+  // Send the Cloudinary URL in the response
+  res.status(200).send({ imageUrl: result.secure_url });
+};
 
 // Get all restaurants
 const getAllRestaurants = async (req, res) => {
@@ -34,7 +42,7 @@ const registerRestaurant = async (req, res) => {
 
 // approve restaurant
 const approveRestaurant = async (req, res) => {
-  const restaurant = await Restaurant.findOne({
+  const restaurant = await Restaurant.findById({
     _id: req.params.restaurantId,
   });
   if (!restaurant) throw NotFoundError("Restaurant does not exist");
@@ -52,4 +60,5 @@ module.exports = {
   registerRestaurant,
   getUserRestaurants,
   approveRestaurant,
+  uploadCover,
 };

@@ -12,12 +12,21 @@ const passwordSchema = JoiInstance.object({
   password: JoiInstance.string().required(),
 });
 
-const loginSchema = JoiInstance.object({
+const emailSchema = JoiInstance.object({
   email: JoiInstance.string().email().required(),
-}).concat(passwordSchema);
+});
+
+const loginSchema = JoiInstance.object()
+  .concat(emailSchema)
+  .concat(passwordSchema);
+
+const otpSchema = JoiInstance.object({
+  otp: JoiInstance.string().min(6).max(6).required(),
+}).concat(emailSchema);
 
 module.exports = {
   signupSchema,
   loginSchema,
   passwordSchema,
+  otpSchema,
 };
