@@ -1,16 +1,72 @@
 const { BadRequestError, NotFoundError } = require("../utils/errors");
 const Restaurant = require("../models/restaurant");
-const cloudinary = require("cloudinary").v2;
+const {
+  uploadImage,
+  deleteImage,
+  extractPublicId,
+} = require("../multer-config/multer-config");
 
 // Add Restaurant Cover Photo
 const uploadCover = async (req, res) => {
-  console.log(req.file);
-  const result = await cloudinary.uploader.upload(req.file, {
-    folder: "demo",
+  const restaurantId = req.params.restaurantId;
+  const restaurant = await Restaurant.findById({
+    _id: restaurantId,
   });
+  if (!restaurant) throw NotFoundError("Restaurant does not exist");
+  const image = req.file;
+  if (!image) throw NotFoundError("Image does not exist");
+  const deletedCover = restaurant.cover;
+  const path = `${restaurantId}/cover`;
+  const result = await uploadImage(path, image);
+  restaurant.set({ cover: result.secure_url });
+  await restaurant.save();
+  if (deletedCover)
+    await deleteImage(`${path}/${extractPublicId(deletedCover)}`);
+  res.status(200).send({ message: "Cover uploaded successfully!" });
+};
 
-  // Send the Cloudinary URL in the response
-  res.status(200).send({ imageUrl: result.secure_url });
+// Add restaurant images
+const uploadImages = async (req, res) => {
+  const restaurantId = req.params.restaurantId;
+  const restaurant = await Restaurant.findById({
+    _id: restaurantId,
+  });
+  if (!restaurant) throw NotFoundError("Restaurant does not exist");
+  const path = `${restaurantId}/images`;
+  const results = await Promise.allSettled(
+    req.files.map((image) => uploadImage(path, image))
+  );
+  const successfulUploads = [];
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      successfulUploads.push(result.value.secure_url);
+    }
+  }
+  restaurant.images.push(...successfulUploads);
+  await restaurant.save();
+  res.status(200).send(restaurant);
+};
+
+// Delete restaurant images
+const deleteImages = async (req, res) => {
+  const restaurantId = req.params.restaurantId;
+  const updatedImages = req.body.images;
+  const restaurant = await Restaurant.findById({
+    _id: restaurantId,
+  });
+  if (!restaurant) throw NotFoundError("Restaurant does not exist");
+  const path = `${restaurantId}/images`;
+  await Promise.allSettled(
+    updatedImages.map((image) =>
+      deleteImage(`${path}/${extractPublicId(image)}`)
+    )
+  );
+  const filteredImages = restaurant.images.filter(
+    (image) => !updatedImages.includes(image)
+  );
+  restaurant.set({ images: filteredImages });
+  await restaurant.save();
+  res.status(200).send(restaurant);
 };
 
 // Get all restaurants
@@ -61,4 +117,6 @@ module.exports = {
   getUserRestaurants,
   approveRestaurant,
   uploadCover,
+  uploadImages,
+  deleteImages,
 };

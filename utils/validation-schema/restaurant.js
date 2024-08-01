@@ -6,6 +6,8 @@ const restaurantSchema = JoiInstance.object({
   taxId: JoiInstance.string().min(13).max(13),
   categories: JoiInstance.array().min(1),
   address: JoiInstance.string().required(),
+  cover: JoiInstance.string(),
+  images: JoiInstance.array(),
 });
 
 const restaurantStatusSchema = JoiInstance.object({

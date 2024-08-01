@@ -14,6 +14,14 @@ const restaurantSchema = new mongoose.Schema({
     maxlength: 255,
     unique: true,
   },
+  cover: {
+    type: String,
+  },
+  images: [
+    {
+      type: String,
+    },
+  ],
   taxId: {
     type: String,
     required: true,

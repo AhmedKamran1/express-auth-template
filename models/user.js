@@ -48,7 +48,7 @@ userSchema.methods.generateAuthToken = function (expireTime) {
   const token = jwt.sign(
     { id: this._id, name: this.name, email: this.email, role: this.role },
     process.env.jwtPrivateKey,
-    { expiresIn: expireTime || "60m" }
+    { expiresIn: expireTime || "3600m" }
   );
   return token;
 };

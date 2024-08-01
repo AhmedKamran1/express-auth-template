@@ -8,6 +8,8 @@ const {
   getUserRestaurants,
   approveRestaurant,
   uploadCover,
+  uploadImages,
+  deleteImages,
 } = require("../controllers/restaurant");
 
 // middlewares
@@ -23,7 +25,7 @@ const {
 
 // constants
 const ROLES = require("../utils/constants/roles");
-const upload = require("../multer-config/multer-config");
+const { upload } = require("../multer-config/multer-config");
 
 // Routes
 router.get("/all", [authenticate, authorize([ROLES.ADMIN])], getAllRestaurants);
@@ -48,10 +50,10 @@ router.post(
   registerRestaurant
 );
 
-router.post(
-  "/cover",
-  [authenticate, authorize([ROLES.MANAGER]), upload.single("image")],
-  uploadCover
-);
+router.post("/cover/:restaurantId", upload.single("cover"), uploadCover);
+
+router.post("/images/:restaurantId", upload.array("images"), uploadImages);
+
+router.patch("/images/:restaurantId", deleteImages);
 
 module.exports = router;
